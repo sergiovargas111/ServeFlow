@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { forecastFor } from "@/lib/forecast/engine";
+import { getBrowserQueue } from "@/lib/shifts/browser-queue";
 import { localTodayIso } from "@/lib/shifts/dates";
 import { defaultShiftType } from "@/lib/shifts/defaults";
 import { parseMoneyToCents } from "@/lib/shifts/money";
@@ -53,6 +54,7 @@ function LogShiftFormInner({ history }: { history: ShiftRecord[] }) {
   const [notes, setNotes] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<string | null>(null);
+  const [savedOffline, setSavedOffline] = useState(false);
 
   const forecast = useMemo(
     () => forecastFor(history, { date: shiftDate, shiftType, holiday: tags.includes("holiday") }),
@@ -69,10 +71,36 @@ function LogShiftFormInner({ history }: { history: ShiftRecord[] }) {
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const payload = { shiftDate, shiftType, grossTips, cashTips, cardTips, tipOut, hours, tables, tags, notes };
+    const clientId = crypto.randomUUID();
+    const payload = { shiftDate, shiftType, grossTips, cashTips, cardTips, tipOut, hours, tables, tags, notes, clientId };
     setMessage(null);
+    setSavedOffline(false);
+
+    const saveOnPhone = () => {
+      const stored = getBrowserQueue().add({ clientId, queuedAt: new Date().toISOString(), payload });
+      if (!stored) {
+        setMessage("You're offline and this phone can't store the shift. Try again when you're back online.");
+        return;
+      }
+      setSavedOffline(true);
+      setGrossTips("");
+      setErrors({});
+    };
+
+    if (!navigator.onLine) {
+      saveOnPhone();
+      return;
+    }
+
     startTransition(async () => {
-      const result = await logShift(payload);
+      let result;
+      try {
+        result = await logShift(payload);
+      } catch {
+        // The request never reached the server (bad Wi-Fi): keep the shift on the phone.
+        saveOnPhone();
+        return;
+      }
       if (result.status === "saved") {
         router.push("/report?logged=1");
         return;
@@ -207,6 +235,12 @@ function LogShiftFormInner({ history }: { history: ShiftRecord[] }) {
           </div>
         ) : null}
       </div>
+
+      {savedOffline ? (
+        <p role="status" className="text-sm font-medium text-primary">
+          Saved on this phone. It&apos;ll sync when you&apos;re back online.
+        </p>
+      ) : null}
 
       {message ? (
         <p role="alert" className="text-sm text-destructive">

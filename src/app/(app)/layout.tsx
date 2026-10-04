@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CircleUser } from "lucide-react";
 import { BottomNav } from "@/components/nav/bottom-nav";
+import { OfflineSync } from "@/components/shifts/offline-sync";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,6 +19,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </Link>
       </header>
       <main className="mx-auto w-full max-w-md flex-1 px-4 pt-2 pb-[calc(5rem+env(safe-area-inset-bottom))]">
+        <OfflineSync />
         {children}
       </main>
       <BottomNav />
