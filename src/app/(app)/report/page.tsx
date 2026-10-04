@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/coming-soon";
+import { Suspense } from "react";
+import { TipReport } from "@/components/report/tip-report";
+import { fetchRecentShifts } from "@/lib/shifts/queries";
 
 export const metadata: Metadata = { title: "Tip Report" };
 
-export default function ReportPage() {
+export default async function ReportPage() {
+  const shifts = await fetchRecentShifts();
+
   return (
-    <ComingSoon
-      title="Tip Report"
-      description="Your tip history, typical ranges and trends will live here."
-    />
+    <div className="space-y-4">
+      <h1 className="text-2xl font-semibold tracking-tight">Tip Report</h1>
+      <Suspense>
+        <TipReport shifts={shifts} />
+      </Suspense>
+    </div>
   );
 }
