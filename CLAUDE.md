@@ -14,6 +14,8 @@ Mobile-first PWA, used one-handed between tables. Full roadmap: `docs/PLAN.md` (
 - `npm run dev`: local dev server
 - `npm run build`: production build
 - `npm run lint`: ESLint
+- `npm run typecheck`: TypeScript check
+- `npm test` / `npm run test:watch` / `npm run test:coverage`: Vitest (see `docs/TESTING.md`)
 
 ## Product principles
 - Never shame the user for a slow night. Below-forecast copy is neutral, never red, never "failure".
