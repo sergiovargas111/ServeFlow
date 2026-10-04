@@ -17,3 +17,5 @@ Open http://localhost:3000.
 ## Docs
 - [`docs/PLAN.md`](docs/PLAN.md): product plan and build phases
 - [`CLAUDE.md`](CLAUDE.md): stack, principles and commands at a glance
+- [`docs/TESTING.md`](docs/TESTING.md): how we test
+- [`docs/METRICS.md`](docs/METRICS.md): measured numbers (forecast backtest, tests, coverage)

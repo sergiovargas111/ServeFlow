@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:rls": "vitest run supabase/tests",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "backtest": "vitest run scripts/backtest.test.ts --silent=false"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

@@ -18,6 +18,7 @@ Mobile-first PWA, used one-handed between tables. Full roadmap: `docs/PLAN.md` (
 - `npm test` / `npm run test:watch` / `npm run test:coverage`: Vitest (see `docs/TESTING.md`)
 - `npm run test:rls`: RLS integration tests (needs `SUPABASE_TEST_*` env)
 - `npm run test:e2e`: Playwright (first run: `npx playwright install chromium`)
+- `npm run backtest`: forecast backtest on simulated data (numbers go in `docs/METRICS.md`)
 
 ## Product principles
 - Never shame the user for a slow night. Below-forecast copy is neutral, never red, never "failure".

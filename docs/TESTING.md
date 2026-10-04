@@ -12,6 +12,7 @@
 | `npm run test:coverage` | Suite + coverage report (`coverage/index.html`) |
 | `npm run test:rls` | RLS integration tests only (needs `SUPABASE_TEST_*`) |
 | `npm run test:e2e` | Playwright flows on a phone viewport (builds + starts the app) |
+| `npm run backtest` | Forecast backtest report on simulated data (also a calibration guard in `npm test`) |
 | `npm run typecheck` | TypeScript, no emit |
 
 ## Always tested
