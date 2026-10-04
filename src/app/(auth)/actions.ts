@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { HOME_AFTER_LOGIN, safeNextPath } from "@/lib/auth/routes";
 import { getPublicSupabaseEnv, getSiteUrl } from "@/lib/env";
+import { loginLimiterByEmail, loginLimiterByIp, signupLimiterByIp } from "@/lib/security/limits";
+import { clientIp, retryMessage } from "@/lib/security/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { fieldErrors, loginSchema, pickFormFields, signupSchema } from "@/lib/validation/auth";
 
@@ -25,10 +27,18 @@ async function siteUrl() {
 
 export async function login(_prev: AuthFormState, form: FormData): Promise<AuthFormState> {
   const raw = pickFormFields(form, ["email", "password", "next"] as const);
+  const values = { email: raw.email ?? "" };
+
+  const byIp = loginLimiterByIp.check(clientIp(await headers()));
+  if (!byIp.allowed) return { status: "error", message: retryMessage(byIp.retryAfterMs), values };
+
   const parsed = loginSchema.safeParse(raw);
   if (!parsed.success) {
-    return { status: "error", fieldErrors: fieldErrors(parsed.error), values: { email: raw.email ?? "" } };
+    return { status: "error", fieldErrors: fieldErrors(parsed.error), values };
   }
+
+  const byEmail = loginLimiterByEmail.check(parsed.data.email);
+  if (!byEmail.allowed) return { status: "error", message: retryMessage(byEmail.retryAfterMs), values };
   if (!getPublicSupabaseEnv()) return NOT_CONFIGURED;
 
   const supabase = await createClient();
@@ -43,6 +53,10 @@ export async function login(_prev: AuthFormState, form: FormData): Promise<AuthF
 export async function signup(_prev: AuthFormState, form: FormData): Promise<AuthFormState> {
   const raw = pickFormFields(form, ["username", "email", "password"] as const);
   const values = { username: raw.username ?? "", email: raw.email ?? "" };
+
+  const byIp = signupLimiterByIp.check(clientIp(await headers()));
+  if (!byIp.allowed) return { status: "error", message: retryMessage(byIp.retryAfterMs), values };
+
   const parsed = signupSchema.safeParse(raw);
   if (!parsed.success) {
     return { status: "error", fieldErrors: fieldErrors(parsed.error), values };
