@@ -12,7 +12,7 @@ test("landing page leads to signup", async ({ page }) => {
 });
 
 test("logged-out users are redirected from protected pages to login", async ({ page }) => {
-  for (const path of ["/report", "/learn", "/coach", "/rights", "/daily", "/account"]) {
+  for (const path of ["/report", "/log", "/learn", "/coach", "/rights", "/daily", "/account"]) {
     await page.goto(path);
     await expect(page).toHaveURL(new RegExp(`/login\\?next=${encodeURIComponent(path)}$`));
   }
