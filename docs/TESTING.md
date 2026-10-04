@@ -10,6 +10,7 @@
 | `npm test` | Full unit suite once (what CI runs) |
 | `npm run test:watch` | Re-run tests on save |
 | `npm run test:coverage` | Suite + coverage report (`coverage/index.html`) |
+| `npm run test:rls` | RLS integration tests only (needs `SUPABASE_TEST_*`) |
 | `npm run typecheck` | TypeScript, no emit |
 
 ## Always tested
