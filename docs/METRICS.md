@@ -1,0 +1,45 @@
+# Metrics
+
+Real, reproducible numbers only. Every entry says how it was measured and whether it comes from **real users** or **simulated** data. Update at the end of each phase.
+
+## Phase 1: tip forecast (2026-10-04)
+
+### Forecast backtest (SIMULATED data)
+
+How: `npm run backtest`. Walk-forward: each shift is forecast using only shifts from earlier days, then we check whether the real take-home landed in the predicted typical range (p25–p75). Dataset: `generateSyntheticShifts()`, one simulated server over 2 years (Oct 2024–Sep 2026) with weekday effects, summer/December seasonality, a +5%/year trend, log-normal noise, context tags (rain, slow section, events), holidays and ~3% tip-out. Three seeds.
+
+| Seed | Shifts | Forecast (after unlock) | In range | Above | Below | MAE vs midpoint | Median abs % error |
+|---|---|---|---|---|---|---|---|
+| 42 | 588 | 551 | 44.3% | 30.9% | 24.9% | $35 | 16.6% |
+| 7 | 603 | 566 | 43.6% | 30.2% | 26.1% | $35 | 17.9% |
+| 2026 | 591 | 554 | 41.5% | 31.2% | 27.3% | $35 | 17.3% |
+
+By shift type (seed 42): lunch 44.5% in range (MAE $15), dinner 43.1% ($38), double 50% ($55).
+By sample size (seed 42): 4–7 shifts 37.5% (n=32), 8–11 60% (n=30), 12–16 43.8% (n=489). The small buckets are too small to read much into.
+
+What it means:
+- A perfectly calibrated p25–p75 range would contain ~50% of outcomes. Ours contains **~42–44%**, so the range is a little narrow.
+- Misses lean **above** the range (~31% vs ~26% below). This is consistent with the simulated upward trend and right-skewed big nights; a 16-shift window lags a rising baseline.
+- The typical miss is about **$35** (17% of the midpoint) per shift.
+- Possible v2 tweaks to evaluate with this same backtest: a slightly wider band (e.g. p20–p80), recency weighting. Not done yet.
+
+A regression guard in `npm test` fails CI if calibration leaves 35–65% in range or misses become lopsided (>15 points).
+
+No real-user data yet. When early testers log shifts, report their backtest separately here.
+
+### Tests (as of this commit)
+
+| | Count |
+|---|---|
+| Unit/integration tests passing (`npm test`) | 280 |
+| Forecast tests (`src/lib/forecast`) | 42 |
+| RLS integration tests (run with `SUPABASE_TEST_*`, skipped in plain `npm test`) | 29 |
+| Playwright e2e flows (`npm run test:e2e`) | 6 |
+
+Coverage (`npm run test:coverage`, lines): forecast **100%**, report **100%**, security 96%, all `src/lib` 84.7%. The uncovered parts are thin Supabase client wrappers, exercised by the RLS and e2e suites instead.
+
+### Not measured yet
+
+- **Time to log a shift** (target under 15 s, one-handed): needs a configured Supabase project and a timed run on a phone. The form is built for it (autofocused amount, pre-filled date and shift type, one tap to save).
+- **Lighthouse** scores for the main screens: to run after the first Vercel deploy.
+- Product analytics (signups, retention, forecast unlock rate): Phase 6.
