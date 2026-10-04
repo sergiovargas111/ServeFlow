@@ -8,7 +8,7 @@ An AI coach and money tool for restaurant servers: log tips in seconds, see what
 
 ```bash
 npm install
-cp .env.example .env.local   # then fill in your keys
+cp env.example .env.local    # then fill in your keys
 npm run dev
 ```
 
