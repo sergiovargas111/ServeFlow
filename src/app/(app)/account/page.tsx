@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { LogOut } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
+import { DeleteAccountForm } from "@/components/account/delete-account-form";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient, getUserId } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Account" };
@@ -27,6 +28,15 @@ export default async function AccountPage() {
               <LogOut aria-hidden /> Sign out
             </Button>
           </form>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Delete account</CardTitle>
+          <CardDescription>Removes your profile and every shift you have logged. This can&apos;t be undone.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DeleteAccountForm />
         </CardContent>
       </Card>
     </div>

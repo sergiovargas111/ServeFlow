@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { ChartColumn, Scale, Wallet } from "lucide-react";
+import { DeletedNotice } from "@/components/account/deleted-notice";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +27,9 @@ export default function Home() {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-between gap-10 px-4 py-10">
       <div className="space-y-4">
+        <Suspense>
+          <DeletedNotice />
+        </Suspense>
         <p className="text-sm font-semibold text-primary">ServeFlow</p>
         <h1 className="text-4xl font-semibold tracking-tight">Your tips, your money, your rights.</h1>
         <p className="text-muted-foreground">
