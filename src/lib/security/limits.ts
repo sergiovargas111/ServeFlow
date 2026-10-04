@@ -5,3 +5,5 @@ export const loginLimiterByIp = createRateLimiter({ limit: 10, windowMs: 5 * 60_
 // Slows credential stuffing against one account from many IPs.
 export const loginLimiterByEmail = createRateLimiter({ limit: 5, windowMs: 15 * 60_000 });
 export const signupLimiterByIp = createRateLimiter({ limit: 5, windowMs: 60 * 60_000 });
+// Generous for real use (a double plus corrections), stops scripted floods.
+export const shiftLogLimiterByUser = createRateLimiter({ limit: 60, windowMs: 60 * 60_000 });
