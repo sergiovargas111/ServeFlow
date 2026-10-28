@@ -9,3 +9,5 @@ export const signupLimiterByIp = createRateLimiter({ limit: 5, windowMs: 60 * 60
 export const shiftLogLimiterByUser = createRateLimiter({ limit: 60, windowMs: 60 * 60_000 });
 // Settings forms: plenty for real edits, stops scripted floods.
 export const settingsLimiterByUser = createRateLimiter({ limit: 30, windowMs: 15 * 60_000 });
+// Drills, habits and menu edits: generous for real use, stops scripted floods.
+export const practiceLimiterByUser = createRateLimiter({ limit: 120, windowMs: 15 * 60_000 });
