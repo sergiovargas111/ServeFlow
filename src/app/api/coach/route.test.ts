@@ -10,7 +10,9 @@ vi.mock("@/lib/supabase/server", () => ({
     return state.userId;
   },
 }));
-vi.mock("@/lib/coach/client", () => ({ getCoachClient: () => (state.configured ? {} : null) }));
+vi.mock("@/lib/coach/client", () => ({
+  getCoachClient: () => (state.configured ? { provider: "bedrock", client: {} } : null),
+}));
 vi.mock("@/lib/coach/run", () => ({ runCoach: (...a: unknown[]) => runCoach(...a) }));
 vi.mock("@/lib/labor/queries", () => ({
   fetchProfileState: async () => state.profileState,
@@ -64,7 +66,8 @@ describe("POST /api/coach", () => {
   it("grounds the coach in the user's state's rules plus federal ones only", async () => {
     const POST = await load();
     await POST(post(valid));
-    const [, , st, rules] = runCoach.mock.calls[0];
+    const [, , st, rules, provider] = runCoach.mock.calls[0];
+    expect(provider).toBe("bedrock");
     expect(st).toBe("CA");
     expect(new Set((rules as { jurisdiction: string }[]).map((r) => r.jurisdiction))).toEqual(new Set(["US", "CA"]));
   });

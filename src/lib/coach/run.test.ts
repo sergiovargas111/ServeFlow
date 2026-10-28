@@ -33,6 +33,17 @@ describe("runCoach", () => {
     expect(params.messages).toEqual(request.messages);
   });
 
+  it("uses the anthropic.-prefixed model and no server-side fallbacks on Bedrock", async () => {
+    parse.mockResolvedValue(reply({ kind: "serving", covered: false, cited_rule_ids: [], reply: "Hi" }));
+    await runCoach(client, request, "CA", rules, "bedrock");
+    const params = parse.mock.calls[0][0];
+    expect(params.model).toBe("anthropic.claude-opus-5-5");
+    expect(params).not.toHaveProperty("fallbacks");
+    expect(params).not.toHaveProperty("betas");
+    expect(params.output_config.format).toBeDefined();
+    expect(params.system[0].cache_control).toEqual({ type: "ephemeral" });
+  });
+
   it("returns the guarded reply", async () => {
     parse.mockResolvedValue(reply({ kind: "legal", covered: true, cited_rule_ids: ["ca-meal_break"], reply: "Yes." }));
     const r = await runCoach(client, request, "CA", rules);

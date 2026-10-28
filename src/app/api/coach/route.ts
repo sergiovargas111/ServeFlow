@@ -42,11 +42,11 @@ export async function POST(request: Request): Promise<Response> {
   const parsed = coachRequestSchema.safeParse(body);
   if (!parsed.success) return error(400, parsed.error.issues[0]?.message ?? "Invalid request.");
 
-  const client = getCoachClient();
-  if (!client) return error(503, "The coach isn't set up yet.");
+  const coach = getCoachClient();
+  if (!coach) return error(503, "The coach isn't set up yet.");
 
   const [state, allRules] = await Promise.all([fetchProfileState(userId), fetchLaborRules()]);
-  const result = await runCoach(client, parsed.data, state, rulesFor(allRules, state));
+  const result = await runCoach(coach.client, parsed.data, state, rulesFor(allRules, state), coach.provider);
   if (result.status === "error") {
     return error(result.code === "rate_limited" ? 429 : result.code === "declined" ? 422 : 503, result.message);
   }

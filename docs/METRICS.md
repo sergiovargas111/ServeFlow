@@ -99,7 +99,7 @@ What shipped: a chat coach (`/coach`) backed by a server-only route (`POST /api/
 | Unit/integration tests passing (`npm test`) | 565 |
 | Playwright e2e flows | 7 |
 
-**Eval scores: not measured yet.** The live eval (`npm run eval:coach`) needs an `ANTHROPIC_API_KEY`, which wasn't configured on the build machine. When it runs it writes `evals/coach/results/<date>.json` and prints: % correct, % of covered legal questions answered with a verified source, % of uncovered questions answered "no verified info", % invented legal claims (raw model output and what users would see; the run fails if the latter is above 0), and % of injection cases resisted. Record those numbers here.
+**Eval scores: not measured yet.** The live eval (`npm run eval:coach`) needs Claude access: an `ANTHROPIC_API_KEY`, or Amazon Bedrock (`COACH_PROVIDER=bedrock`, `AWS_REGION` and AWS credentials). Neither was configured on the build machine. When it runs it writes `evals/coach/results/<date>.json` and prints: % correct, % of covered legal questions answered with a verified source, % of uncovered questions answered "no verified info", % invented legal claims (raw model output and what users would see; the run fails if the latter is above 0), and % of injection cases resisted. Record those numbers here.
 
 ### Not measured yet
 

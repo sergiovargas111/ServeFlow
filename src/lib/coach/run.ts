@@ -7,6 +7,14 @@ import { coachOutputSchema, type CoachRequest } from "./schema";
 
 export const COACH_MODEL = "claude-opus-5-5";
 
+export type CoachProvider = "anthropic" | "bedrock";
+
+/** Model id per provider: Claude in Amazon Bedrock prefixes ids with "anthropic.". */
+export const COACH_MODEL_IDS: Record<CoachProvider, string> = {
+  anthropic: COACH_MODEL,
+  bedrock: `anthropic.${COACH_MODEL}`,
+};
+
 /** The slice of the SDK client the coach uses, so tests can pass a fake. */
 export type CoachClient = Pick<Anthropic, "beta">;
 
@@ -21,8 +29,9 @@ const UNAVAILABLE = "The coach can't answer right now. Please try again in a min
  * - The fixed instructions are a cached system block; the user's state and
  *   rules follow in a second block so the cached prefix never changes.
  * - Structured output (Zod schema) gives kind / covered / cited ids / reply.
- * - fallbacks: "default" lets the API retry on Anthropic's recommended model
- *   if a safety classifier declines the request.
+ * - On the Claude API, fallbacks: "default" lets the API retry on Anthropic's
+ *   recommended model if a safety classifier declines the request. Bedrock
+ *   doesn't offer server-side fallbacks; a decline there is returned as "declined".
  * - The guard checks citations against the rules we sent before anything is returned.
  */
 export async function runCoach(
@@ -30,14 +39,14 @@ export async function runCoach(
   request: CoachRequest,
   state: string | null,
   rules: readonly LaborRule[],
+  provider: CoachProvider = "anthropic",
 ): Promise<CoachResult> {
   let response;
   try {
     response = await client.beta.messages.parse({
-      model: COACH_MODEL,
+      model: COACH_MODEL_IDS[provider],
       max_tokens: 4000,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
+      ...(provider === "anthropic" ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
       output_config: { effort: "low", format: betaZodOutputFormat(coachOutputSchema) },
       system: [
         { type: "text", text: COACH_SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
