@@ -11,3 +11,5 @@ export const shiftLogLimiterByUser = createRateLimiter({ limit: 60, windowMs: 60
 export const settingsLimiterByUser = createRateLimiter({ limit: 30, windowMs: 15 * 60_000 });
 // Drills, habits and menu edits: generous for real use, stops scripted floods.
 export const practiceLimiterByUser = createRateLimiter({ limit: 120, windowMs: 15 * 60_000 });
+// Rights screen: state changes, break log entries, admin rule edits.
+export const rightsLimiterByUser = createRateLimiter({ limit: 60, windowMs: 15 * 60_000 });
