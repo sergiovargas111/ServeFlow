@@ -31,3 +31,16 @@ export async function getUserId(): Promise<string | null> {
   if (error || !data?.claims?.sub) return null;
   return data.claims.sub;
 }
+
+/**
+ * True only when the verified session JWT carries app_metadata.role = "admin".
+ * app_metadata can only be set with the service role, so users can't grant it
+ * to themselves. RLS on admin tables checks the same claim.
+ */
+export async function isAdmin(): Promise<boolean> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getClaims();
+  if (error || !data?.claims) return false;
+  const meta = data.claims.app_metadata as { role?: unknown } | undefined;
+  return meta?.role === "admin";
+}
