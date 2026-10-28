@@ -15,9 +15,11 @@
     "test:e2e": "playwright test",
     "backtest": "vitest run scripts/backtest.test.ts --silent=false",
     "labor:report": "vitest run scripts/labor.test.ts --silent=false",
-    "labor:seed": "vitest run scripts/labor.test.ts -u"
+    "labor:seed": "vitest run scripts/labor.test.ts -u",
+    "eval:coach": "vitest run --config vitest.eval.config.mts --silent=false"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0",
     "@base-ui/react": "^1.8.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
