@@ -54,6 +54,20 @@ Coverage (lines): budget logic 100% for `outlook.ts` and `split.ts`; `src/lib/bu
 
 Not measured: whether "safe to spend" matches real spending. That needs real users.
 
+## Phase 3: daily habits, streaks, levels, drills (2026-10-27)
+
+What shipped: Daily tab (streak + 3 tasks a day: log tips, a drill, a rotating habit; any logged shift counts toward the streak, slow nights included), Learn tab with Level 1 (Basics) and Level 2 (Upselling), 8 drills / 40 questions, graded on the server, Level 2 unlocking after all Level 1 drills are passed at 80%+, and menu quizzes generated from the user's own dishes (ingredients and the 9 major US allergens). Levels 3 and 4 are shown as coming later.
+
+| | Count |
+|---|---|
+| Unit/integration tests passing (`npm test`) | 441 |
+| Learn + daily tests (`src/lib/learn`, `src/lib/daily`, actions) | 67 |
+| RLS integration tests (skipped without `SUPABASE_TEST_*`) | 61 |
+| Drill content | 8 drills, 40 questions |
+| Database tables | 6 (`profiles`, `shifts`, `budget_settings`, `drill_attempts`, `task_completions`, `menu_items`) |
+
+Not measured yet: Day 7 / Day 30 retention and average streak length. Those need real users (Phase 6 analytics).
+
 ### Not measured yet
 
 - **Time to log a shift** (target under 15 s, one-handed): needs a configured Supabase project and a timed run on a phone. The form is built for it (autofocused amount, pre-filled date and shift type, one tap to save).

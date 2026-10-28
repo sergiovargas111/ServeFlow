@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/coming-soon";
+import { DailyView } from "@/components/daily/daily-view";
+import { fetchAttempts, fetchHabitCompletions } from "@/lib/learn/queries";
+import { fetchRecentShifts } from "@/lib/shifts/queries";
 
 export const metadata: Metadata = { title: "Daily" };
 
-export default function DailyPage() {
+export default async function DailyPage() {
+  const today = new Date().toISOString().slice(0, 10);
+  const [shifts, attempts, habits] = await Promise.all([fetchRecentShifts(), fetchAttempts(), fetchHabitCompletions(today)]);
+
   return (
-    <ComingSoon
-      title="Daily"
-      description="Small daily habits and streaks. A slow night still counts."
-    />
+    <div className="space-y-4">
+      <h1 className="text-2xl font-semibold tracking-tight">Daily</h1>
+      <DailyView shiftDates={[...new Set(shifts.map((s) => s.date))]} attempts={attempts} habits={habits} />
+    </div>
   );
 }

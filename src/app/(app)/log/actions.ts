@@ -53,5 +53,6 @@ export async function logShift(input: unknown): Promise<LogShiftResult> {
   }
 
   revalidatePath("/report");
+  revalidatePath("/daily");
   return { status: "saved" };
 }
