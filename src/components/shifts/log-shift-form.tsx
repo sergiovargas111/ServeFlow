@@ -8,11 +8,13 @@ import { FormField } from "@/components/auth/form-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { computeTipOut } from "@/lib/budget/tip-out";
+import { hasTipOuts, needsSales, type BudgetSettings } from "@/lib/budget/types";
 import { forecastFor } from "@/lib/forecast/engine";
 import { getBrowserQueue } from "@/lib/shifts/browser-queue";
 import { localTodayIso } from "@/lib/shifts/dates";
 import { defaultShiftType } from "@/lib/shifts/defaults";
-import { parseMoneyToCents } from "@/lib/shifts/money";
+import { formatCents, MAX_SALES_CENTS, parseMoneyToCents } from "@/lib/shifts/money";
 import {
   SHIFT_TAG_LABELS,
   SHIFT_TAGS,
@@ -31,13 +33,13 @@ const noopSubscribe = () => () => {};
  * Today's date and the lunch/dinner guess come from the phone's clock, which
  * the server can't know, so the form renders only on the client.
  */
-export function LogShiftForm({ history }: { history: ShiftRecord[] }) {
+export function LogShiftForm({ history, settings }: { history: ShiftRecord[]; settings: BudgetSettings }) {
   const isClient = useSyncExternalStore(noopSubscribe, () => true, () => false);
   if (!isClient) return <div className="h-96 animate-pulse rounded-xl bg-muted" aria-hidden />;
-  return <LogShiftFormInner history={history} />;
+  return <LogShiftFormInner history={history} settings={settings} />;
 }
 
-function LogShiftFormInner({ history }: { history: ShiftRecord[] }) {
+function LogShiftFormInner({ history, settings }: { history: ShiftRecord[]; settings: BudgetSettings }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -48,6 +50,7 @@ function LogShiftFormInner({ history }: { history: ShiftRecord[] }) {
   const [cashTips, setCashTips] = useState("");
   const [cardTips, setCardTips] = useState("");
   const [tipOut, setTipOut] = useState("");
+  const [sales, setSales] = useState("");
   const [hours, setHours] = useState("");
   const [tables, setTables] = useState("");
   const [tags, setTags] = useState<ShiftTag[]>([]);
@@ -62,7 +65,10 @@ function LogShiftFormInner({ history }: { history: ShiftRecord[] }) {
   );
 
   const gross = parseMoneyToCents(grossTips);
-  const out = tipOut.trim() === "" ? 0 : parseMoneyToCents(tipOut);
+  const salesCents = sales.trim() === "" ? null : parseMoneyToCents(sales, MAX_SALES_CENTS);
+  // A blank tip-out is filled in from the budget settings on the server; preview the same math here.
+  const autoTipOut = gross === null || !hasTipOuts(settings) ? null : computeTipOut(settings, gross, salesCents);
+  const out = tipOut.trim() === "" ? (autoTipOut?.totalCents ?? 0) : parseMoneyToCents(tipOut);
   const takeHome = gross === null || out === null ? null : Math.max(0, gross - out);
 
   function toggleTag(tag: ShiftTag) {
@@ -72,7 +78,7 @@ function LogShiftFormInner({ history }: { history: ShiftRecord[] }) {
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     const clientId = crypto.randomUUID();
-    const payload = { shiftDate, shiftType, grossTips, cashTips, cardTips, tipOut, hours, tables, tags, notes, clientId };
+    const payload = { shiftDate, shiftType, grossTips, cashTips, cardTips, tipOut, sales, hours, tables, tags, notes, clientId };
     setMessage(null);
     setSavedOffline(false);
 
@@ -106,7 +112,7 @@ function LogShiftFormInner({ history }: { history: ShiftRecord[] }) {
         return;
       }
       setErrors(result.fieldErrors ?? {});
-      if (result.fieldErrors && Object.keys(result.fieldErrors).some((k) => !["shiftDate", "grossTips"].includes(k))) {
+      if (result.fieldErrors && Object.keys(result.fieldErrors).some((k) => !["shiftDate", "grossTips", "sales"].includes(k))) {
         setShowMore(true);
       }
       setMessage(result.message ?? null);
@@ -175,7 +181,26 @@ function LogShiftFormInner({ history }: { history: ShiftRecord[] }) {
         error={errors.shiftDate}
       />
 
+      {needsSales(settings) ? (
+        <FormField
+          name="sales"
+          label="Sales (for tip-outs on sales)"
+          inputMode="decimal"
+          value={sales}
+          onChange={(e) => setSales(e.target.value)}
+          error={errors.sales}
+          hint={autoTipOut?.missingSales ? "Add your sales so the tip-out on sales is counted." : undefined}
+        />
+      ) : null}
+
       <ForecastPreview forecast={forecast} takeHomeCents={takeHome} />
+
+      {autoTipOut && tipOut.trim() === "" ? (
+        <p className="text-sm text-muted-foreground">
+          Tip-out {formatCents(autoTipOut.totalCents, { exact: true })} from your settings · take-home{" "}
+          {formatCents(takeHome ?? 0, { exact: true })}
+        </p>
+      ) : null}
 
       <div>
         <button
@@ -193,7 +218,15 @@ function LogShiftFormInner({ history }: { history: ShiftRecord[] }) {
             <div className="grid grid-cols-2 gap-3">
               <FormField name="cashTips" label="Cash" inputMode="decimal" value={cashTips} onChange={(e) => setCashTips(e.target.value)} error={errors.cashTips} />
               <FormField name="cardTips" label="Card" inputMode="decimal" value={cardTips} onChange={(e) => setCardTips(e.target.value)} error={errors.cardTips} />
-              <FormField name="tipOut" label="Tip-out paid" inputMode="decimal" value={tipOut} onChange={(e) => setTipOut(e.target.value)} error={errors.tipOut} />
+              <FormField
+                name="tipOut"
+                label="Tip-out paid"
+                inputMode="decimal"
+                placeholder={autoTipOut ? (autoTipOut.totalCents / 100).toFixed(2) : undefined}
+                value={tipOut}
+                onChange={(e) => setTipOut(e.target.value)}
+                error={errors.tipOut}
+              />
               <FormField name="hours" label="Hours" inputMode="decimal" value={hours} onChange={(e) => setHours(e.target.value)} error={errors.hours} />
               <FormField name="tables" label="Tables in section" inputMode="numeric" value={tables} onChange={(e) => setTables(e.target.value)} error={errors.tables} />
             </div>

@@ -38,6 +38,22 @@ No real-user data yet. When early testers log shifts, report their backtest sepa
 
 Coverage (`npm run test:coverage`, lines): forecast **100%**, report **100%**, security 96%, all `src/lib` 84.7%. The uncovered parts are thin Supabase client wrappers, exercised by the RLS and e2e suites instead.
 
+## Phase 2: budgeting (2026-10-27)
+
+What shipped: tip-out settings (bar / busser / host, each a % of tips or of sales), automatic tip-out on blank entries (computed on the server), exact-cent split into bills / savings / spending / taxes, "safe to spend this week" (spending share of earned-so-far + 80% of typical for the usual shifts still ahead), typical-month projection with split, and neutral slow-week alerts (this week's pace, and weeks that were slow the same time last year).
+
+| | Count |
+|---|---|
+| Unit/integration tests passing (`npm test`) | 368 |
+| Budget tests (`src/lib/budget`, `src/lib/validation/budget.ts`, settings action) | 73 (+5 auto tip-out tests in the log action) |
+| RLS integration tests (skipped without `SUPABASE_TEST_*`) | 43 |
+| Playwright e2e flows | 6 |
+| Database tables | 3 (`profiles`, `shifts`, `budget_settings`) |
+
+Coverage (lines): budget logic 100% for `outlook.ts` and `split.ts`; `src/lib/budget` 95.8% overall (the uncovered file is the thin Supabase query wrapper).
+
+Not measured: whether "safe to spend" matches real spending. That needs real users.
+
 ### Not measured yet
 
 - **Time to log a shift** (target under 15 s, one-handed): needs a configured Supabase project and a timed run on a phone. The form is built for it (autofocused amount, pre-filled date and shift type, one tap to save).

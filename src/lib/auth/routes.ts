@@ -1,5 +1,5 @@
 /** Pages that require a signed-in user. Nested paths are protected too. */
-export const PROTECTED_PREFIXES = ["/report", "/learn", "/coach", "/rights", "/daily", "/log", "/account"] as const;
+export const PROTECTED_PREFIXES = ["/report", "/learn", "/coach", "/rights", "/daily", "/log", "/budget", "/account"] as const;
 
 /** Pages a signed-in user has no reason to see. */
 export const AUTH_PAGES = ["/login", "/signup"] as const;

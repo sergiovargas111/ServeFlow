@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { centsToDollars, dollarsToCents, formatCents, MAX_AMOUNT_CENTS, parseMoneyToCents } from "./money";
+import { centsToDollars, dollarsToCents, formatCents, MAX_AMOUNT_CENTS, MAX_SALES_CENTS, parseMoneyToCents } from "./money";
 
 describe("parseMoneyToCents", () => {
   it.each([
@@ -30,6 +30,12 @@ describe("parseMoneyToCents", () => {
     ["SQL injection", "'; DROP TABLE shifts; --"],
   ])("rejects %s", (_label, input) => {
     expect(parseMoneyToCents(input)).toBeNull();
+  });
+
+  it("accepts a higher custom maximum (sales)", () => {
+    expect(parseMoneyToCents("50000", MAX_SALES_CENTS)).toBe(5_000_000);
+    expect(parseMoneyToCents("50000")).toBeNull();
+    expect(parseMoneyToCents("100000.01", MAX_SALES_CENTS)).toBeNull();
   });
 
   it("keeps sums exact where floats would drift", () => {

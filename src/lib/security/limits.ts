@@ -7,3 +7,5 @@ export const loginLimiterByEmail = createRateLimiter({ limit: 5, windowMs: 15 * 
 export const signupLimiterByIp = createRateLimiter({ limit: 5, windowMs: 60 * 60_000 });
 // Generous for real use (a double plus corrections), stops scripted floods.
 export const shiftLogLimiterByUser = createRateLimiter({ limit: 60, windowMs: 60 * 60_000 });
+// Settings forms: plenty for real edits, stops scripted floods.
+export const settingsLimiterByUser = createRateLimiter({ limit: 30, windowMs: 15 * 60_000 });

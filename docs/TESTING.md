@@ -17,7 +17,7 @@
 
 ## Always tested
 - Forecast math: grouping, percentiles, minimum sample size, % difference, messaging tone
-- Take-home and tip-out calculations
+- Take-home and tip-out calculations (`src/lib/budget`: tip-outs on tips or sales, exact-cent splits, safe to spend, slow-week alerts)
 - Labor-rule lookup and stale-rule (90+ day) logic
 - RLS access policies (integration, against a test database)
 - Coach evals (Phase 5)
@@ -27,7 +27,7 @@ Coverage expectation: near-complete on `src/lib/forecast/**` and labor-rule logi
 ## Required auth, validation and security suite
 Validation happens on the server with Zod. Tests call the schemas/server actions directly, not only the UI.
 - **Access control**: logged-out users are redirected from protected pages; one user can't read, edit or delete another user's shifts, budgets or break logs (RLS); unauthenticated requests are rejected; admin-only tables are blocked for normal users; account deletion removes the user's data.
-- **Input validation**: usernames reject `!!!`, empty, whitespace, too long, emoji and reserved names (`admin`); tip amounts reject negatives, letters, huge values and >2 decimals; hours, dates and tip-out values reject out-of-range input (40-hour shift, 200% tip-out).
+- **Input validation**: usernames reject `!!!`, empty, whitespace, too long, emoji and reserved names (`admin`); tip amounts reject negatives, letters, huge values and >2 decimals; hours, dates and tip-out values reject out-of-range input (40-hour shift, 200% tip-out, tip-outs over 100% of tips, a budget split that doesn't add up to 100).
 - **Injection**: SQL (`'; DROP TABLE shifts; --`) and XSS (`<script>alert(1)</script>`) payloads are rejected or stored as plain text and rendered as text. Supabase client only, never string-built SQL.
 - **Abuse limits**: rate limits on login, signup (and the coach route later); oversized bodies rejected.
 - **Coach (Phase 5)**: prompt-injection prompts are part of the eval set; the coach route requires login.

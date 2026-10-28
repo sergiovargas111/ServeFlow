@@ -3,9 +3,11 @@
 import { useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CircleCheck, Plus, Sparkles } from "lucide-react";
+import { ChevronRight, CircleCheck, Plus, Sparkles, Wallet } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { safeToSpendCents, weekOutlook } from "@/lib/budget/outlook";
+import type { BudgetSettings } from "@/lib/budget/types";
 import { FORECAST_DISCLAIMER } from "@/lib/forecast/messages";
 import { buildTipReport } from "@/lib/report/summary";
 import { localTodayIso } from "@/lib/shifts/dates";
@@ -18,10 +20,26 @@ const noopSubscribe = () => () => {};
 const shortDate = new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
 
 /** "Today" comes from the phone's clock, so the report renders on the client. */
-export function TipReport({ shifts }: { shifts: ShiftRecord[] }) {
+export function TipReport({ shifts, settings }: { shifts: ShiftRecord[]; settings: BudgetSettings }) {
   const today = useSyncExternalStore(noopSubscribe, () => localTodayIso(), () => null);
   if (!today) return <div className="h-96 animate-pulse rounded-xl bg-muted" aria-hidden />;
-  return <TipReportView shifts={shifts} today={today} />;
+  return <TipReportView shifts={shifts} settings={settings} today={today} />;
+}
+
+function BudgetLink({ shifts, settings, today }: { shifts: ShiftRecord[]; settings: BudgetSettings; today: string }) {
+  const safe = useMemo(() => safeToSpendCents(weekOutlook(shifts, today), settings.split), [shifts, settings, today]);
+  return (
+    <Link href="/budget" className="flex items-center gap-3 rounded-xl p-4 ring-1 ring-foreground/10 hover:bg-muted">
+      <Wallet className="size-5 text-primary" aria-hidden />
+      <span className="flex-1">
+        <span className="block text-sm text-muted-foreground">Safe to spend this week</span>
+        <span className="text-lg font-semibold tabular-nums">{formatCents(safe)}</span>
+      </span>
+      <span className="flex items-center text-sm font-medium">
+        Budget <ChevronRight className="size-4" aria-hidden />
+      </span>
+    </Link>
+  );
 }
 
 function LogButton({ label }: { label: string }) {
@@ -32,7 +50,7 @@ function LogButton({ label }: { label: string }) {
   );
 }
 
-function TipReportView({ shifts, today }: { shifts: ShiftRecord[]; today: string }) {
+function TipReportView({ shifts, settings, today }: { shifts: ShiftRecord[]; settings: BudgetSettings; today: string }) {
   const report = useMemo(() => buildTipReport(shifts, today), [shifts, today]);
   const [period, setPeriod] = useState<"weekly" | "monthly">("weekly");
   const justLogged = useSearchParams().get("logged") === "1";
@@ -83,6 +101,8 @@ function TipReportView({ shifts, today }: { shifts: ShiftRecord[]; today: string
       ) : null}
 
       <LogButton label="Log tonight's tips" />
+
+      <BudgetLink shifts={shifts} settings={settings} today={today} />
 
       <div className="grid grid-cols-2 gap-3">
         <Card size="sm">
