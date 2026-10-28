@@ -1,13 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const state = { userId: "user-a" as string | null };
+const state = { userId: "user-a" as string | null, budget: null as Record<string, unknown> | null };
 const insert = vi.fn();
 const revalidatePath = vi.fn();
 
 vi.mock("next/cache", () => ({ revalidatePath: (p: string) => revalidatePath(p) }));
 vi.mock("@/lib/supabase/server", () => ({
   getUserId: async () => state.userId,
-  createClient: async () => ({ from: () => ({ insert }) }),
+  createClient: async () => ({
+    from: (table: string) =>
+      table === "budget_settings"
+        ? { select: () => ({ maybeSingle: async () => ({ data: state.budget, error: null }) }) }
+        : { insert },
+  }),
 }));
 
 async function load() {
@@ -20,6 +25,7 @@ const valid = { shiftDate: today, shiftType: "dinner", grossTips: "185.50" };
 
 beforeEach(() => {
   state.userId = "user-a";
+  state.budget = null;
   insert.mockReset().mockResolvedValue({ error: null });
   revalidatePath.mockReset();
 });
@@ -86,5 +92,53 @@ describe("logShift action", () => {
     for (let i = 0; i < 60; i++) await logShift(valid);
     expect(await logShift(valid)).toMatchObject({ status: "error", retryable: true });
     expect(insert).toHaveBeenCalledTimes(60);
+  });
+
+  describe("automatic tip-out", () => {
+    const budget = {
+      bar_pct: "5.00",
+      bar_basis: "tips",
+      busser_pct: "1.50",
+      busser_basis: "sales",
+      host_pct: "0",
+      host_basis: "tips",
+      split_bills: 50,
+      split_savings: 10,
+      split_spending: 25,
+      split_taxes: 15,
+    };
+
+    it("fills in a blank tip-out from the user's settings", async () => {
+      state.budget = budget;
+      const logShift = await load();
+      await logShift({ ...valid, grossTips: "200", sales: "1000" });
+      expect(insert.mock.calls[0][0]).toMatchObject({ tip_out: 25, sales: 1000 }); // $10 bar + $15 busser
+    });
+
+    it("keeps a tip-out the user typed in", async () => {
+      state.budget = budget;
+      const logShift = await load();
+      await logShift({ ...valid, grossTips: "200", tipOut: "12" });
+      expect(insert.mock.calls[0][0].tip_out).toBe(12);
+    });
+
+    it("leaves out sales-based tip-outs when sales weren't entered", async () => {
+      state.budget = budget;
+      const logShift = await load();
+      await logShift({ ...valid, grossTips: "200" });
+      expect(insert.mock.calls[0][0]).toMatchObject({ tip_out: 10, sales: null });
+    });
+
+    it("saves no tip-out when the user has no settings", async () => {
+      const logShift = await load();
+      await logShift(valid);
+      expect(insert.mock.calls[0][0].tip_out).toBe(0);
+    });
+
+    it("rejects an absurd sales amount", async () => {
+      const logShift = await load();
+      const result = await logShift({ ...valid, sales: "5000000" });
+      expect(result).toMatchObject({ status: "error", fieldErrors: { sales: expect.any(String) } });
+    });
   });
 });

@@ -52,6 +52,16 @@ describe("shift schema: valid input", () => {
   });
 });
 
+describe("shift schema: sales", () => {
+  it("accepts sales above the $10,000 tip cap", () => {
+    expect(schema.parse({ ...base, sales: "12500" }).sales).toBe(1_250_000);
+  });
+
+  it("treats blank sales as not given", () => {
+    expect(schema.parse({ ...base, sales: "  " }).sales).toBeUndefined();
+  });
+});
+
 describe("shift schema: rejects bad input", () => {
   it.each([
     ["negative tips", { grossTips: "-20" }, "grossTips"],
@@ -60,6 +70,8 @@ describe("shift schema: rejects bad input", () => {
     ["too many decimals", { grossTips: "12.345" }, "grossTips"],
     ["missing tips", { grossTips: undefined }, "grossTips"],
     ["number instead of string", { grossTips: 185.5 }, "grossTips"],
+    ["negative sales", { sales: "-100" }, "sales"],
+    ["absurd sales", { sales: "250000" }, "sales"],
     ["40-hour shift", { hours: "40" }, "hours"],
     ["zero hours", { hours: "0" }, "hours"],
     ["negative hours", { hours: "-3" }, "hours"],

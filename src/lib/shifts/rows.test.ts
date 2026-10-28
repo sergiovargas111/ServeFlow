@@ -40,12 +40,18 @@ describe("toInsertRow", () => {
       cash_tips: null,
       card_tips: null,
       tip_out: 12,
+      sales: null,
       hours: 6.5,
       tables_count: null,
       tags: [],
       notes: null,
       client_id: null,
     });
+  });
+
+  it("converts sales to dollars when given", () => {
+    const shift = schema.parse({ shiftDate: "2026-10-02", shiftType: "dinner", grossTips: "185", sales: "1234.50" });
+    expect(toInsertRow(shift, "u").sales).toBe(1234.5);
   });
 
   it("defaults tip-out to zero", () => {

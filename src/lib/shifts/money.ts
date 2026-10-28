@@ -1,5 +1,7 @@
 /** Largest amount accepted for any single tip field: $10,000.00. */
 export const MAX_AMOUNT_CENTS = 1_000_000;
+/** Largest sales total accepted for one shift: $100,000.00. */
+export const MAX_SALES_CENTS = 10_000_000;
 
 const MONEY = /^\$?\s*(\d{1,7})(?:\.(\d{1,2}))?$/;
 
@@ -8,13 +10,13 @@ const MONEY = /^\$?\s*(\d{1,7})(?:\.(\d{1,2}))?$/;
  * Returns null for anything else: negatives, letters, commas, more than two
  * decimals, or amounts over the maximum. Integer cents keep sums exact.
  */
-export function parseMoneyToCents(input: string): number | null {
+export function parseMoneyToCents(input: string, maxCents = MAX_AMOUNT_CENTS): number | null {
   const match = MONEY.exec(input.trim());
   if (!match) return null;
   const dollars = Number(match[1]);
   const cents = Number((match[2] ?? "").padEnd(2, "0"));
   const total = dollars * 100 + cents;
-  return total <= MAX_AMOUNT_CENTS ? total : null;
+  return total <= maxCents ? total : null;
 }
 
 /** Cents to a dollars number for the database's numeric(10,2) columns. */

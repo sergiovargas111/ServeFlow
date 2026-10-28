@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { addDays, isValidIsoDate } from "@/lib/shifts/dates";
-import { parseMoneyToCents } from "@/lib/shifts/money";
+import { MAX_AMOUNT_CENTS, MAX_SALES_CENTS, parseMoneyToCents } from "@/lib/shifts/money";
 import { SHIFT_TAGS, SHIFT_TYPES } from "@/lib/shifts/types";
 
 const EARLIEST_DATE = "2000-01-01";
@@ -11,19 +11,21 @@ export const MAX_NOTES_LENGTH = 500;
 /** Empty or whitespace-only strings count as "not provided". */
 const blankToUndefined = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
 
-const money = (label: string) =>
+const money = (label: string, maxCents = MAX_AMOUNT_CENTS) =>
   z
     .string({ error: `Enter ${label} as a number.` })
     .transform((v, ctx) => {
-      const cents = parseMoneyToCents(v);
+      const cents = parseMoneyToCents(v, maxCents);
       if (cents === null) {
-        ctx.addIssue({ code: "custom", message: `Enter ${label} like 85 or 85.50 (up to $10,000).` });
+        const max = (maxCents / 100).toLocaleString("en-US");
+        ctx.addIssue({ code: "custom", message: `Enter ${label} like 85 or 85.50 (up to $${max}).` });
         return z.NEVER;
       }
       return cents;
     });
 
-const optionalMoney = (label: string) => z.preprocess(blankToUndefined, money(label).optional());
+const optionalMoney = (label: string, maxCents?: number) =>
+  z.preprocess(blankToUndefined, money(label, maxCents).optional());
 
 /**
  * Validates a shift submitted from the log form or the offline queue.
@@ -45,6 +47,7 @@ export function makeShiftSchema(today: string) {
       cashTips: optionalMoney("cash tips"),
       cardTips: optionalMoney("card tips"),
       tipOut: optionalMoney("tip-out"),
+      sales: optionalMoney("sales", MAX_SALES_CENTS),
       hours: z.preprocess(
         blankToUndefined,
         z

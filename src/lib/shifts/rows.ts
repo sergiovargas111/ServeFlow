@@ -41,6 +41,7 @@ export function toInsertRow(shift: ValidShift, userId: string) {
     cash_tips: shift.cashTips === undefined ? null : centsToDollars(shift.cashTips),
     card_tips: shift.cardTips === undefined ? null : centsToDollars(shift.cardTips),
     tip_out: centsToDollars(shift.tipOut ?? 0),
+    sales: shift.sales === undefined ? null : centsToDollars(shift.sales),
     hours: shift.hours ?? null,
     tables_count: shift.tables ?? null,
     tags: shift.tags,
