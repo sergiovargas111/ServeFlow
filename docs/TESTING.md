@@ -18,6 +18,7 @@
 ## Always tested
 - Forecast math: grouping, percentiles, minimum sample size, % difference, messaging tone
 - Take-home and tip-out calculations (`src/lib/budget`: tip-outs on tips or sales, exact-cent splits, safe to spend, slow-week alerts)
+- Drills and habits (`src/lib/learn`, `src/lib/daily`): server-side grading (client scores ignored), level unlocks, deterministic menu quizzes, streaks (a slow night counts), daily tasks
 - Labor-rule lookup and stale-rule (90+ day) logic
 - RLS access policies (integration, against a test database)
 - Coach evals (Phase 5)
