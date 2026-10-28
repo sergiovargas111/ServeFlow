@@ -12,6 +12,7 @@
 | `npm run test:coverage` | Suite + coverage report (`coverage/index.html`) |
 | `npm run test:rls` | RLS integration tests only (needs `SUPABASE_TEST_*`) |
 | `npm run test:e2e` | Playwright flows on a phone viewport (builds + starts the app) |
+| `npm run labor:report` | Labor-law data-quality report (states, rules, % sourced, stale) |
 | `npm run backtest` | Forecast backtest report on simulated data (also a calibration guard in `npm test`) |
 | `npm run typecheck` | TypeScript, no emit |
 
@@ -19,7 +20,7 @@
 - Forecast math: grouping, percentiles, minimum sample size, % difference, messaging tone
 - Take-home and tip-out calculations (`src/lib/budget`: tip-outs on tips or sales, exact-cent splits, safe to spend, slow-week alerts)
 - Drills and habits (`src/lib/learn`, `src/lib/daily`): server-side grading (client scores ignored), level unlocks, deterministic menu quizzes, streaks (a slow night counts), daily tasks
-- Labor-rule lookup and stale-rule (90+ day) logic
+- Labor-rule lookup and stale-rule (90+ day) logic (`src/lib/labor`): state rules over the federal baseline, federal fallback clearly labeled, expired rates flagged; a CI quality gate fails if a published rule lacks a primary source, legal basis or verified date, or if `supabase/seed/labor_rules.sql` is out of date
 - RLS access policies (integration, against a test database)
 - Coach evals (Phase 5)
 

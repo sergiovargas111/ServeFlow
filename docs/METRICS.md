@@ -68,6 +68,26 @@ What shipped: Daily tab (streak + 3 tasks a day: log tips, a drill, a rotating h
 
 Not measured yet: Day 7 / Day 30 retention and average streak length. Those need real users (Phase 6 analytics).
 
+## Phase 4: Know Your Rights (2026-10-28)
+
+What shipped: a sourced labor-law dataset (`labor_rules`, admin-only editing via RLS + a server check), a Yes / No / Depends checklist for 7 questions (meal breaks, rest breaks, break pay, tip credit, managers taking tips, tip pools, card fees), state rules layered over the federal baseline, stale-rule flagging (90+ days unverified, or a dollar rate past its `valid_through` date), the disclaimer, a link to the state labor department, and a private break log.
+
+Data quality (`npm run labor:report`, dataset verified 2026-10-27 against primary sources):
+
+| | Value |
+|---|---|
+| States covered | 5 (CA, FL, IL, NY, TX) + federal baseline |
+| Rules | 32 (32 published) |
+| With a source URL / primary government source / verified date | 100% / 100% / 100% |
+| Stale (90+ days or expired rate) | 0 |
+| Attorney-reviewed | **0 of 32** (required before public launch) |
+| Labor + rights tests | 76 (`src/lib/labor`, rights actions, seed sync) |
+| Unit/integration tests passing (`npm test`) | 523 |
+| RLS integration tests (skipped without `SUPABASE_TEST_*`) | 73 |
+| Database tables | 8 (adds `labor_rules`, `break_logs`) |
+
+Sources used: US DOL (Fact Sheet #15, breaks page, state tipped-wage / meal / rest tables), CA DIR Labor Commissioner FAQs, TWC Texas Guidebook for Employers, NY DOL (P717 2026 tipped wage sheet, tips FAQ) and NY Labor Law section 162, FloridaCommerce 2026 minimum wage notice, Illinois DOL (minimum wage FAQ, ODRISA page, tips press release). Two rules carry rates that change on a known date (NY 2026 tipped wage and CA 2026 minimum wage expire 2026-12-31; FL through 2027-12-31) and will flag themselves for review.
+
 ### Not measured yet
 
 - **Time to log a shift** (target under 15 s, one-handed): needs a configured Supabase project and a timed run on a phone. The form is built for it (autofocused amount, pre-filled date and shift type, one tap to save).
