@@ -88,6 +88,19 @@ Data quality (`npm run labor:report`, dataset verified 2026-10-27 against primar
 
 Sources used: US DOL (Fact Sheet #15, breaks page, state tipped-wage / meal / rest tables), CA DIR Labor Commissioner FAQs, TWC Texas Guidebook for Employers, NY DOL (P717 2026 tipped wage sheet, tips FAQ) and NY Labor Law section 162, FloridaCommerce 2026 minimum wage notice, Illinois DOL (minimum wage FAQ, ODRISA page, tips press release). Two rules carry rates that change on a known date (NY 2026 tipped wage and CA 2026 minimum wage expire 2026-12-31; FL through 2027-12-31) and will flag themselves for review.
 
+## Phase 5: AI Server Coach (2026-10-28)
+
+What shipped: a chat coach (`/coach`) backed by a server-only route (`POST /api/coach`, login required, 30 questions per user per hour, 32 KB body cap, Zod-validated) calling `claude-opus-5-5` with structured output (`kind`, `covered`, `cited_rule_ids`, `reply`), a cached fixed system prompt, and refusal fallbacks. Legal questions are answered only from the user's state's verified rules plus the federal baseline. A server-side guard drops citations of rules that weren't provided and replaces any uncovered or uncited legal answer with a fixed "I don't have verified information" reply plus the labor-department link, so the model's own wording never carries an unsourced legal claim. Sources shown to users come from our data, not the model.
+
+| | Value |
+|---|---|
+| Eval set | 49 cases: 23 covered legal, 10 uncovered legal, 6 serving, 4 out-of-scope, 6 prompt-injection |
+| Coach tests (`src/lib/coach`, `/api/coach`) | 42 |
+| Unit/integration tests passing (`npm test`) | 565 |
+| Playwright e2e flows | 7 |
+
+**Eval scores: not measured yet.** The live eval (`npm run eval:coach`) needs Claude access: an `ANTHROPIC_API_KEY`, or Amazon Bedrock (`COACH_PROVIDER=bedrock`, `AWS_REGION` and AWS credentials). Neither was configured on the build machine. When it runs it writes `evals/coach/results/<date>.json` and prints: % correct, % of covered legal questions answered with a verified source, % of uncovered questions answered "no verified info", % invented legal claims (raw model output and what users would see; the run fails if the latter is above 0), and % of injection cases resisted. Record those numbers here.
+
 ### Not measured yet
 
 - **Time to log a shift** (target under 15 s, one-handed): needs a configured Supabase project and a timed run on a phone. The form is built for it (autofocused amount, pre-filled date and shift type, one tap to save).

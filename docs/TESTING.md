@@ -12,6 +12,7 @@
 | `npm run test:coverage` | Suite + coverage report (`coverage/index.html`) |
 | `npm run test:rls` | RLS integration tests only (needs `SUPABASE_TEST_*`) |
 | `npm run test:e2e` | Playwright flows on a phone viewport (builds + starts the app) |
+| `npm run eval:coach` | Live coach eval (Claude API with `ANTHROPIC_API_KEY`, or Amazon Bedrock with `COACH_PROVIDER=bedrock` + AWS credentials; uses paid credit; not in CI) |
 | `npm run labor:report` | Labor-law data-quality report (states, rules, % sourced, stale) |
 | `npm run backtest` | Forecast backtest report on simulated data (also a calibration guard in `npm test`) |
 | `npm run typecheck` | TypeScript, no emit |
@@ -22,7 +23,8 @@
 - Drills and habits (`src/lib/learn`, `src/lib/daily`): server-side grading (client scores ignored), level unlocks, deterministic menu quizzes, streaks (a slow night counts), daily tasks
 - Labor-rule lookup and stale-rule (90+ day) logic (`src/lib/labor`): state rules over the federal baseline, federal fallback clearly labeled, expired rates flagged; a CI quality gate fails if a published rule lacks a primary source, legal basis or verified date, or if `supabase/seed/labor_rules.sql` is out of date
 - RLS access policies (integration, against a test database)
-- Coach evals (Phase 5)
+- Coach (`src/lib/coach`, `/api/coach`): request validation, the citation guard (cited ids must be rules we sent; uncovered or uncited legal answers become the fixed "no verified info" reply), refusal and API-error handling with a fake client, route auth / rate limit / body cap
+- Coach evals: `evals/coach/cases.json` (49 cases: covered and uncovered legal questions, serving, out-of-scope, prompt injection), graded deterministically by `src/lib/coach/eval.ts`. `npm run eval:coach` runs them live (not in CI: it costs money); it fails if any invented legal claim would reach a user
 
 Coverage expectation: near-complete on `src/lib/forecast/**` and labor-rule logic; meaningful elsewhere.
 
@@ -32,7 +34,7 @@ Validation happens on the server with Zod. Tests call the schemas/server actions
 - **Input validation**: usernames reject `!!!`, empty, whitespace, too long, emoji and reserved names (`admin`); tip amounts reject negatives, letters, huge values and >2 decimals; hours, dates and tip-out values reject out-of-range input (40-hour shift, 200% tip-out, tip-outs over 100% of tips, a budget split that doesn't add up to 100).
 - **Injection**: SQL (`'; DROP TABLE shifts; --`) and XSS (`<script>alert(1)</script>`) payloads are rejected or stored as plain text and rendered as text. Supabase client only, never string-built SQL.
 - **Abuse limits**: rate limits on login, signup (and the coach route later); oversized bodies rejected.
-- **Coach (Phase 5)**: prompt-injection prompts are part of the eval set; the coach route requires login.
+- **Coach**: prompt-injection prompts are part of the eval set; the coach route requires login (unit + e2e), is rate-limited per user (30/hour) and rejects bodies over 32 KB.
 
 RLS integration tests run only when `SUPABASE_TEST_URL`, `SUPABASE_TEST_ANON_KEY` and `SUPABASE_TEST_SERVICE_ROLE_KEY` are set (point them at a local or throwaway Supabase project, never production). A static test always checks that every table in `supabase/migrations` enables RLS.
 

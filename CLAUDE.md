@@ -6,7 +6,7 @@ Mobile-first PWA, used one-handed between tables. Full roadmap: `docs/PLAN.md` (
 ## Stack
 - Next.js 16 (App Router, `src/`, Turbopack) + TypeScript + Tailwind CSS v4 + shadcn/ui
 - Supabase (Postgres, Auth, Row Level Security); migrations in `supabase/migrations/`
-- Claude API, called only from server-side code. Zod validates every input **on the server**.
+- Claude API (direct, or Claude in Amazon Bedrock via `COACH_PROVIDER=bedrock`), called only from server-side code. Zod validates every input **on the server**.
 - Recharts (charts), Vitest (unit), Playwright (e2e), Vercel (hosting), Stripe (later)
 - Ask before adding any dependency outside this stack.
 
@@ -19,6 +19,7 @@ Mobile-first PWA, used one-handed between tables. Full roadmap: `docs/PLAN.md` (
 - `npm run test:rls`: RLS integration tests (needs `SUPABASE_TEST_*` env)
 - `npm run test:e2e`: Playwright (first run: `npx playwright install chromium`)
 - `npm run backtest`: forecast backtest on simulated data (numbers go in `docs/METRICS.md`)
+- `npm run eval:coach`: live coach eval (49 cases, calls Claude; needs `ANTHROPIC_API_KEY`, or `COACH_PROVIDER=bedrock` + AWS credentials; scores go in `docs/METRICS.md`)
 - `npm run labor:report` / `npm run labor:seed`: labor-law data-quality report / regenerate `supabase/seed/labor_rules.sql` from the JSON
 
 ## Product principles

@@ -13,3 +13,5 @@ export const settingsLimiterByUser = createRateLimiter({ limit: 30, windowMs: 15
 export const practiceLimiterByUser = createRateLimiter({ limit: 120, windowMs: 15 * 60_000 });
 // Rights screen: state changes, break log entries, admin rule edits.
 export const rightsLimiterByUser = createRateLimiter({ limit: 60, windowMs: 15 * 60_000 });
+// The coach calls a paid API: enough for a real shift's questions, not for scripts.
+export const coachLimiterByUser = createRateLimiter({ limit: 30, windowMs: 60 * 60_000 });

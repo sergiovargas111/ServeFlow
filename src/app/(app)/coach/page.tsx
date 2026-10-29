@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/coming-soon";
+import { CoachChat } from "@/components/coach/coach-chat";
 
-export const metadata: Metadata = { title: "Coach" };
+export const metadata: Metadata = { title: "Server Coach" };
 
 export default function CoachPage() {
   return (
-    <ComingSoon
-      title="Coach"
-      description="Ask your Server Coach how to handle a tough table or what to upsell."
-    />
+    <div className="space-y-4">
+      <h1 className="text-2xl font-semibold tracking-tight">Server Coach</h1>
+      <CoachChat />
+    </div>
   );
 }
